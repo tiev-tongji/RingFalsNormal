@@ -1,0 +1,175 @@
+%YAML:1.0
+
+# Project
+project_name: "lvi_sam"
+
+#common parameters
+#imu_topic: "/camera/imu/"
+imu_topic: "/handsfree/imu"
+image_topic: "/camera/color/image_raw/"
+#image_topic: "/camera/right/image_raw"             # fisheye
+point_cloud_topic: "lvi_sam/lidar/deskew/cloud_deskewed"
+#output_path: "/home/hk/ws_pl-lvi-sam/src/PL-LVI-SAM/trajactory"
+output_path: "/home/autolab/ws_pl-lvi-sam/src/PL-LVI-SAM/path/vins_sub_path"
+
+# Lidar Params
+use_lidar: 1                     # whether use depth info from lidar or not
+lidar_skip: 3                    # skip this amount of scans
+align_camera_lidar_estimation: 1 # align camera and lidar estimation for
+
+align_LIO_VIO_BSpline: 0              # align LIO and VIO odometry
+
+# submap and scan cloud triangulation in image frane
+triangulation: 1
+
+# lidar to camera extrinsic
+#camera系下lidar位姿    T : camera <-- lidar
+lidar_to_cam_tx: -0.30456
+lidar_to_cam_ty: -0.00065
+lidar_to_cam_tz: -0.65376
+lidar_to_cam_rx: 0
+lidar_to_cam_ry: 0
+lidar_to_cam_rz: 0
+#lidar_to_cam_tx: 0.00065
+#lidar_to_cam_ty: 0.65376
+#lidar_to_cam_tz: -0.30456
+#lidar_to_cam_rx: -2.356194
+#lidar_to_cam_ry: -1.570795
+#lidar_to_cam_rz: -2.356194     #-1.570796
+
+#获取深度时，相机坐标系与lidar坐标系的变换, R: lidar <-- camera
+depth_camera_to_lidar_Rotation: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [0, 0, 1,
+          -1, 0, 0,
+          0, -1, 0]
+
+#odom <-- vins_world
+odom_to_vins_w_rx: 0.0
+odom_to_vins_w_ry: 0.0
+odom_to_vins_w_rz: 0.0
+odom_to_vins_w_tx: -0.27255
+odom_to_vins_w_ty: 0.00053
+odom_to_vins_w_tz: -0.17954
+#3.1415926535897
+# lidar --> vins_body(vins IMU), vins imu 系下 lidar位姿  rpy, xyz
+lidar_to_vins_body_rx: 0.0
+lidar_to_vins_body_ry: 0.0
+lidar_to_vins_body_rz: 0.0
+lidar_to_vins_body_tx: 0.27255
+lidar_to_vins_body_ty: -0.00053
+lidar_to_vins_body_tz: 0.17954
+
+
+# camera model
+model_type: PINHOLE
+camera_name: camera
+
+# Mono camera config
+image_width: 640
+image_height: 480
+#image_width: 1280              # fisheye
+#image_height: 1024             # fisheye
+mirror_parameters:
+   xi: 1.9926618269451453
+#distortion_parameters:
+#   k1: 9.2615504465028850e-02
+#   k2: -1.8082438825995681e-01
+#   p1: -6.5484100374765971e-04
+#   p2: -3.5829351558557421e-04
+#projection_parameters:
+#   fx: 612.0813598632812
+#   fy: 610.395263671875
+#   cx: 328.0500793457031
+#   cy: 254.96112060546875
+distortion_parameters:
+   k1: 0.148000794688248
+   k2: -0.217835187249065
+   p1: -6.5484100374765971e-04
+   p2: -3.5829351558557421e-04
+projection_parameters:
+   fx: 617.971050917033
+   fy: 616.445131524790
+   cx: 327.710279392468
+   cy: 253.976983707814
+fisheye_mask: "/config/fisheye_mask_720x540.jpg"
+
+#K_: remap
+#   617.971069 0.000000 305.000000
+#   0.000000 616.445129 220.000000
+#   0.000000 0.000000 1.000000
+
+
+#imu parameters       The more accurate parameters you provide, the worse performance
+#handsfree IMU
+acc_n: 3.7686306102624571e-02         # accelerometer measurement noise standard deviation.
+gyr_n: 2.3417543020438883e-03         # gyroscope measurement noise standard deviation.
+acc_w: 1.1416642385952368e-03        # accelerometer bias random work noise standard deviation.
+gyr_w: 1.4428407712885209e-05       # gyroscope bias random work noise standard deviation.
+g_norm: 9.80511       #
+imu_freq: 150                        # IMU rate
+
+
+# Extrinsic parameter between IMU and Camera.
+estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
+                        # 1  Have an initial guess about extrinsic parameters. We will optimize around your initial guess.
+                        # 2  Don't know anything about extrinsic parameters. You don't need to give R,T. We will try to calibrate it. Do some rotation movement at beginning. 
+#Rotation from camera frame to imu frame, imu^R_cam
+extrinsicRotation: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+#   data: [0.99964621, 0.01105994, 0.02418954,
+#          -0.01088975, 0.9999151, -0.00715601,
+#          -0.02426663, 0.00689006, 0.99968178]
+#   handsfree IMU
+   data: [ 0, 0, 1.0,
+           -1.0, 0, 0,
+           0, -1.0, 0]
+
+#Translation from camera frame to imu frame, imu^T_cam
+extrinsicTranslation: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+#   data: [0.07494282,-0.01077138, -0.00641822]
+#   handsfree IMU
+   data: [0.57711, 0.00012, 0.83330]
+
+#feature traker paprameters
+max_cnt: 150            # max feature number in feature tracking
+min_dist: 20            # min distance between two features 
+freq: 20                # frequence (Hz) of publish tracking result. At least 10Hz for good estimation. If set 0, the frequence will be same as raw image 
+F_threshold: 1.0        # ransac threshold (pixel)
+show_track: 1           # publish tracking image as topic
+equalize: 1             # if image is too dark or light, trun on equalize to find enough features
+fisheye: 0              # if using fisheye, trun on it. A circle mask will be loaded to remove edge noisy points
+
+#line feature tracker parameters
+line_image_resize: 1         # use larger image size
+line_image_width: 610
+line_image_height: 440
+
+#optimization parameters
+max_solver_time: 0.035   # max solver itration time (ms), to guarantee real time
+max_num_iterations: 10   # max solver itrations, to guarantee real time
+keyframe_parallax: 10.0  # keyframe selection threshold (pixel)
+
+#unsynchronization parameters
+estimate_td: 0           # online estimate time offset between camera and imu
+td: 0                    # initial value of time offset. unit: s. readed image clock + td = real image clock (IMU clock)
+
+#rolling shutter parameters
+rolling_shutter: 0       # 0: global shutter camera, 1: rolling shutter camera
+rolling_shutter_tr: 0    # unit: s. rolling shutter read out time per frame (from data sheet). 
+
+#loop closure parameters
+loop_closure: 1                    # start loop closure
+skip_time: 0.0
+skip_dist: 0.0
+debug_image: 0                      # save raw image in loop detector for visualization prupose; you can close this function by setting 0 
+match_image_scale: 0.5
+vocabulary_file: "/config/brief_k10L6.bin"
+brief_pattern_file: "/config/brief_pattern.yml"
