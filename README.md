@@ -7,7 +7,9 @@ A real-time normal estimator for spinning LiDAR.
 ![normals.jpg](fig%2Fnormals.jpg)
 
 ## How to use
-Tested under ubuntu 16.04 with opencv3.3.1 and ubuntu 18.04 with opencv3.2.0
+Tested under Ubuntu 16.04 with opencv3.3.1 and Ubuntu 18.04 with opencv3.2.0. 
+Output point cloud with the topic "cloud_normal".
+
 ```angular2html
 mkdir -p ws_ring_fals/src
 cd ws_ring_fals/src
