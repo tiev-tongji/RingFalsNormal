@@ -4,6 +4,8 @@ A real-time normal estimator for spinning LiDAR.
 
 1. [LOG-LIO](https://github.com/tiev-tongji/RingFalsNormal): A LiDAR-inertial Odometry with Efficient Local Geometric Information Estimation
 
+**Related video:**  [Ring FALS](https://youtu.be/cxTLywI7X7M)
+
 ![normals.jpg](fig%2Fnormals.jpg)
 
 ## How to use

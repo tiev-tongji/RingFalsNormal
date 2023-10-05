@@ -2,19 +2,18 @@
 #include <thread>
 #include <fstream>
 #include <unistd.h>
+#include <condition_variable>
+
 #include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <ros/package.h>
+#include <visualization_msgs/Marker.h>
+
 #include "preprocess.h"
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/io/pcd_io.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <tf/transform_datatypes.h>
-#include <ros/package.h>
-#include <condition_variable>
-
+#include <pcl/filters/filter.h>
 
 /*** Time Log Variables ***/
 bool   runtime_pos_log = false;
@@ -40,6 +39,58 @@ string ring_table_dir;
 bool check_normal;
 
 ros::Publisher pub_cloud;
+ros::Publisher pub_lines;
+
+double len = 1.0;
+
+void visualizeNormals(const PointCloudXYZI & cloud, const std_msgs::Header & header)
+{
+
+    if (pub_lines.getNumSubscribers() != 0) {
+        visualization_msgs::Marker lines;
+        lines.header = header;
+        lines.header.frame_id = "camera_init";
+        lines.ns = "lines";
+        lines.type = visualization_msgs::Marker::LINE_LIST;
+        lines.action = visualization_msgs::Marker::ADD;
+        lines.pose.orientation.w = 1.0;
+        lines.lifetime = ros::Duration();
+
+        //static int key_poses_id = 0;
+        lines.id = 0; //key_poses_id++;
+        lines.scale.x = 0.03;
+        lines.scale.y = 0.03;
+        lines.scale.z = 0.03;
+        lines.color.g = 1.0;
+        lines.color.a = 1.0;
+
+        for (int i = 0; i < p_pre->pl_surf.points.size(); ++i) {
+            geometry_msgs::Point p;
+            p.x = cloud.points[i].x;
+            p.y = cloud.points[i].y;
+            p.z = cloud.points[i].z;
+            lines.points.push_back(p);
+
+            p.x += cloud.points[i].normal_x * len;
+            p.y += cloud.points[i].normal_y * len;
+            p.z += cloud.points[i].normal_z * len;
+            lines.points.push_back(p);
+        }
+        pub_lines.publish(lines);
+    }
+}
+
+void visualizeCloud(const PointCloudXYZI & cloud, const std_msgs::Header & header)
+{
+    if (pub_cloud.getNumSubscribers() != 0)
+    {
+        sensor_msgs::PointCloud2 laserCloudmsg;
+        pcl::toROSMsg(p_pre->pl_surf, laserCloudmsg);
+        laserCloudmsg.header = header;
+        laserCloudmsg.header.frame_id = "camera_init";
+        pub_cloud.publish(laserCloudmsg);
+    }
+}
 
 void standard_pcl_cbk(const sensor_msgs::PointCloud2::ConstPtr &msg)
 {
@@ -54,17 +105,29 @@ void standard_pcl_cbk(const sensor_msgs::PointCloud2::ConstPtr &msg)
 
     PointCloudXYZI::Ptr  ptr(new PointCloudXYZI());
     p_pre->process(msg, ptr);
+
+    //todo inf removel in Ring FALS normal estimator
+    size_t j = 0;
+    for (size_t i = 0; i < p_pre->pl_surf.points.size (); ++i)
+    {
+        if (!pcl_isfinite (p_pre->pl_surf.points[i].normal_x) ||
+            !pcl_isfinite (p_pre->pl_surf.points[i].normal_y) ||
+            !pcl_isfinite (p_pre->pl_surf.points[i].normal_z))
+            continue;
+        p_pre->pl_surf.points[j] = p_pre->pl_surf.points[i];
+        j++;
+    }
+    p_pre->pl_surf.resize(j);
+
     lidar_buffer.push_back(ptr);
     time_buffer.push_back(msg->header.stamp.toSec());
     last_timestamp_lidar = msg->header.stamp.toSec();
     mtx_buffer.unlock();
     sig_buffer.notify_all();
 
-    sensor_msgs::PointCloud2 laserCloudmsg;
-    pcl::toROSMsg(p_pre->pl_surf, laserCloudmsg);
-    laserCloudmsg.header.stamp = msg->header.stamp;
-    laserCloudmsg.header.frame_id = "camera_init";
-    pub_cloud.publish(laserCloudmsg);
+    visualizeCloud(p_pre->pl_surf, msg->header);
+
+    visualizeNormals(p_pre->pl_surf, msg->header);
 }
 
 int main(int argc, char** argv)
@@ -105,6 +168,7 @@ int main(int argc, char** argv)
 
     pub_cloud = nh.advertise<sensor_msgs::PointCloud2> ("/cloud_normal", 1000);
 
+    pub_lines = nh.advertise<visualization_msgs::Marker> ("normals", 10);
 //------------------------------------------------------------------------------------------------------
     ros::Rate rate(5000);
     bool status = ros::ok();
