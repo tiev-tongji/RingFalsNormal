@@ -26,5 +26,5 @@ source devel/setup.bash
 roslaunch ring_fals normal_m2dgr.launch 
 ```
 
-So far, we have only provided luanch files for [M2DGR](https://github.com/SJTU-ViSYS/M2DGR) and [NTU VIRAL](https://github.com/ntu-aris/ntu_viral_dataset), a more detailed readme is coming soon!
+So far, we have only provided launch files for [M2DGR](https://github.com/SJTU-ViSYS/M2DGR) and [NTU VIRAL](https://github.com/ntu-aris/ntu_viral_dataset), a more detailed readme is coming soon!
 
