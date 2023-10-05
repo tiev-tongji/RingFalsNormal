@@ -1,12 +1,13 @@
 # Ring FALS Normal Estimator
-
+A real-time normal estimator for spinning LiDAR.
 ## Related Works
 
 1. [LOG-LIO](https://github.com/tiev-tongji/RingFalsNormal): A LiDAR-inertial Odometry with Efficient Local Geometric Information Estimation
 
+![normals.jpg](fig%2Fnormals.jpg)
 
 ## How to use
-
+Tested under ubuntu 16.04 with opencv3.3.1 and ubuntu 18.04 with opencv3.2.0
 ```angular2html
 mkdir -p ws_ring_fals/src
 cd ws_ring_fals/src
@@ -21,5 +22,5 @@ source devel/setup.bash
 roslaunch ring_fals normal_m2dgr.launch 
 ```
 
-So far, we have only provided luanch files for M2DGR and NTU VIRAL, a more detailed readme is coming soon!
+So far, we have only provided luanch files for [M2DGR](https://github.com/SJTU-ViSYS/M2DGR) and [NTU VIRAL](https://github.com/ntu-aris/ntu_viral_dataset), a more detailed readme is coming soon!
 
