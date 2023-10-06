@@ -264,7 +264,15 @@ public:
         Vec3T *row_B = B[0];
         for (; row_r != row_r_end; ++row_r, ++row_B, ++row_V)
         {
-            if (cvIsNaN(*row_r))
+            if (*row_r==FLT_MAX)
+                *row_B = Vec3T();
+            else
+      const float* row_r = r.ptr < float > (0), *row_r_end = row_r + rows_ * cols_; //距原点距离起始
+        const Vec3T *row_V = V_[0];
+        Vec3T *row_B = B[0];
+        for (; row_r != row_r_end; ++row_r, ++row_B, ++row_V)
+        {
+            if (*row_r==FLT_MAX)
                 *row_B = Vec3T();
             else
                 *row_B = (*row_V) / (*row_r); //v_i / r_i
@@ -280,7 +288,7 @@ public:
         const Mat33T * M_inv = reinterpret_cast<const Mat33T *>(M_inv_.ptr(0));
         Vec3T *normal = normals.ptr<Vec3T>(0);
         for (; row_r != row_r_end; ++row_r, ++B_vec, ++normal, ++M_inv)
-            if (cvIsNaN(*row_r))
+            if (*row_r==FLT_MAX)
             {
                 (*normal)[0] = *row_r;
                 (*normal)[1] = *row_r;
@@ -313,7 +321,7 @@ public:
         Vec3T *row_B = B[0];
         for (; row_r != row_r_end; ++row_r, ++row_B, ++row_V)
         {
-            if (cvIsNaN(*row_r))
+            if (*row_r==FLT_MAX)
                 *row_B = Vec3T();
             else
                 *row_B = (*row_V) / (*row_r); //v_i / r_i
