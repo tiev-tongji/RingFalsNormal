@@ -259,7 +259,7 @@ public:
         // Compute B
         cv::Mat_<Vec3T> B(rows_, cols_);
 
-        const float* row_r = r.ptr < float > (0), *row_r_end = row_r + rows_ * cols_; //距原点距离起始
+        const float* row_r = r.ptr < float > (0), *row_r_end = row_r + rows_ * cols_; //distance
         const Vec3T *row_V = V_[0];
         Vec3T *row_B = B[0];
         for (; row_r != row_r_end; ++row_r, ++row_B, ++row_V)

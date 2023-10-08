@@ -106,19 +106,6 @@ void standard_pcl_cbk(const sensor_msgs::PointCloud2::ConstPtr &msg)
     PointCloudXYZI::Ptr  ptr(new PointCloudXYZI());
     p_pre->process(msg, ptr);
 
-    //todo inf removel in Ring FALS normal estimator
-    size_t j = 0;
-    for (size_t i = 0; i < p_pre->pl_surf.points.size (); ++i)
-    {
-        if (!pcl_isfinite (p_pre->pl_surf.points[i].normal_x) ||
-            !pcl_isfinite (p_pre->pl_surf.points[i].normal_y) ||
-            !pcl_isfinite (p_pre->pl_surf.points[i].normal_z))
-            continue;
-        p_pre->pl_surf.points[j] = p_pre->pl_surf.points[i];
-        j++;
-    }
-    p_pre->pl_surf.resize(j);
-
     lidar_buffer.push_back(ptr);
     time_buffer.push_back(msg->header.stamp.toSec());
     last_timestamp_lidar = msg->header.stamp.toSec();

@@ -325,12 +325,15 @@ void Preprocess::ouster_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
       added_pt.intensity = pl_orig.points[i].intensity;
       added_pt.curvature = pl_orig.points[i].t * time_unit_scale; // curvature unit: ms
 
-        if (compute_normal && cloud2image[i] > 0)
+        const int & index =  cloud2image[i];
+        if (compute_normal && index > 0)
         {
             int rowIdn, columnIdn;
-            rowIdn = cloud2image[i] / image_cols;
-            columnIdn = cloud2image[i] - rowIdn * image_cols;
+            rowIdn = index / image_cols;
+            columnIdn = index - rowIdn * image_cols;
             const cv::Vec3f &n_cv = normals.at<cv::Vec3f>(rowIdn, columnIdn);
+            if (!std::isfinite(n_cv(0)) || !std::isfinite(n_cv(1)) || !std::isfinite(n_cv(2)))
+                continue;
             added_pt.normal_x = n_cv(0);
             added_pt.normal_y = n_cv(1);
             added_pt.normal_z = n_cv(2);
@@ -452,12 +455,15 @@ void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
           {
 //              if (!pointInImage(orig_pt, rowIdn, columnIdn))
 //                continue;
-              if (compute_normal && cloud2image[i] > 0)
+              const int & index =  cloud2image[i];
+              if (compute_normal && index > 0)
               {
                   int rowIdn, columnIdn;
-                  rowIdn = cloud2image[i] / image_cols;
-                  columnIdn = cloud2image[i] - rowIdn * image_cols;
+                  rowIdn = index / image_cols;
+                  columnIdn = index - rowIdn * image_cols;
                   const cv::Vec3f &n_cv = normals.at<cv::Vec3f>(rowIdn, columnIdn);
+                  if (!std::isfinite(n_cv(0)) || !std::isfinite(n_cv(1)) || !std::isfinite(n_cv(2)))
+                      continue;
                   added_pt.normal_x = n_cv(0);
                   added_pt.normal_y = n_cv(1);
                   added_pt.normal_z = n_cv(2);
