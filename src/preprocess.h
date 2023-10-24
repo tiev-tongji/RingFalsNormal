@@ -112,7 +112,7 @@ class Preprocess
     string ring_table_dir;
 
     bool runtime_log = false;
-    bool compute_normal = false;
+    bool ringfals_en = false;
 
   private:
 //  void avia_handler(const livox_ros_driver::CustomMsg::ConstPtr &msg);

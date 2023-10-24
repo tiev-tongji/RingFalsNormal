@@ -1,6 +1,8 @@
 #include "precomp.h"
 #include <opencv2/opencv.hpp>
 
+#include <sys/stat.h>
+
   /** Just compute the norm of a vector
    * @param vec a vector of size 3 and any type T
    * @return
@@ -184,6 +186,16 @@ public:
 
     void saveMInverse(std::string dir, std::string filename)
     {
+        if (access(dir.c_str(), 0)) {
+            printf("folder dose not exist. Creating a new folder:\n%s\n", dir.c_str());
+            if(mkdir(dir.c_str(), 0771) == 0)
+                printf("Created successfully.\n");
+            else {
+                printf("Failed to create, EXIT.\n");
+                return;
+            }
+        }
+
         std::vector<cv::Mat> mats(9);
         for (int i = 0; i < 9; ++i) {
             mats[i].create(M_inv_.rows, M_inv_.cols, CV_32F);

@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 
     // ring Fals Normal Estimation parameters
     nh.param<bool>("normal/compute_table", p_pre->compute_table, false);
-    nh.param<bool>("normal/compute_normal", p_pre->compute_normal, false);
+    nh.param<bool>("normal/ringfals_en", p_pre->ringfals_en, false);
     nh.param<bool>("normal/check_normal", check_normal, true);
     nh.param<string>("normal/ring_table_dir", ring_table_dir, "/tmp");
     std::string PROJECT_NAME = "ring_fals";
@@ -160,6 +160,14 @@ int main(int argc, char** argv)
     ros::Rate rate(5000);
     bool status = ros::ok();
     ros::spin();
+
+    if (p_pre->compute_table) {
+        printf(".....Computing M inverse....\n");
+        p_pre->range_image.computeMInverse();
+        printf("Computing M inverse matrix.\n");
+        printf(".....Saving range image lookup table....\n");
+        p_pre->range_image.saveLookupTable(p_pre->ring_table_dir, "ring" + std::to_string(N_SCAN));
+    }
 
     return 0;
 }

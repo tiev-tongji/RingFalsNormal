@@ -116,31 +116,6 @@ void Preprocess::projectPointCloud(const pcl::PointCloud<PointXYZIRT>::Ptr& clou
 
 void Preprocess::computeRingNormals(const pcl::PointCloud<PointXYZIRT>::Ptr& cloud)
 {
-    // not test yet
-    if (compute_table) {
-        TicToc t_range_image;
-//        int cloudSize = (int)cloud->points.size();
-//        pcl::PointCloud<PointXYZIRT>::Ptr cloud_tmp(new  pcl::PointCloud<PointXYZIRT>());
-//        cloud_tmp->resize(cloudSize);
-//        // range image projection
-//        for (int i = 0; i < cloudSize; ++i) {
-//            PointXYZIRT &thisPoint = cloud_tmp->points[i];
-//            thisPoint.x = cloud->points[i].x;
-//            thisPoint.y = cloud->points[i].y;
-//            thisPoint.z = cloud->points[i].z;
-//            thisPoint.intensity = cloud->points[i].intensity;
-//            thisPoint.ring = static_cast<uint16_t>(cloud->points[i].normal_x);  // ring，
-//        }
-//        range_image.createFromRings(N_SCANS, image_cols, laserCloudIn);
-//        range_image.createAndBuildTableFromRings(laserCloudIn);
-        range_image.buildTableFromRings(cloud);
-        ROS_WARN("build range image from rings cost: %fms", t_range_image.toc());
-        return;
-    }
-
-//        range_image.createFromRings(laserCloudIn);
-//        range_image.saveRangeImage("/tmp/range_image.jpg");
-
     TicToc t_normal;
 //        range_image.computeNormals(rangeMat, normals);
     range_image.computeNormals(rangeMat, normals, plane_residual); ///output: normalized normals
@@ -248,17 +223,24 @@ void Preprocess::process(const sensor_msgs::PointCloud2::ConstPtr &msg, PointClo
 
 void Preprocess::estimateNormals(const pcl::PointCloud<PointXYZIRT>::Ptr& cloud)
 {
+    if (compute_table)
+    {
+        TicToc t_range_image;
+        range_image.buildTableFromRings(cloud);
+        ROS_WARN("build range image from rings cost: %fms", t_range_image.toc());
+        return;
+    }
+
     TicToc t_1;
     projectPointCloud(cloud);
     proj_time = t_1.toc();
+
     TicToc t_2;
     computeRingNormals(cloud);
     compu_time = t_2.toc();
+
     TicToc t_3;
-    if (!compute_table)
-    {
-        extractCloudAndNormals(cloud);
-    }
+    extractCloudAndNormals(cloud);
     smooth_time = t_3.toc();
 }
 
@@ -284,7 +266,7 @@ void Preprocess::ouster_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
 
   pcl::PointCloud<PointXYZIRT>::Ptr cloud_tmp(new pcl::PointCloud<PointXYZIRT>());
   ouster2velodyne(pl_orig, cloud_tmp);
-    if (compute_normal)
+    if (ringfals_en)
     {
         TicToc t_nor;
         estimateNormals(cloud_tmp); // get cloud_with_normal
@@ -309,6 +291,7 @@ void Preprocess::ouster_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
     double time_stamp = msg->header.stamp.toSec();
     // cout << "===================================" << endl;
     // printf("Pt size = %d, N_SCANS = %d\r\n", plsize, N_SCANS);
+    bool normal_valid = ringfals_en && !compute_table;
     for (int i = 0; i < pl_orig.points.size(); i++)
     {
       if (i % point_filter_num != 0) continue;
@@ -326,7 +309,7 @@ void Preprocess::ouster_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
       added_pt.curvature = pl_orig.points[i].t * time_unit_scale; // curvature unit: ms
 
         const int & index =  cloud2image[i];
-        if (compute_normal && index > 0)
+        if (normal_valid && index > 0)
         {
             int rowIdn, columnIdn;
             rowIdn = index / image_cols;
@@ -359,7 +342,7 @@ void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
     int plsize = pl_orig->points.size();
 //    ROS_INFO("cloud input size: %d", plsize);
 
-    if (compute_normal)
+    if (ringfals_en)
     {
         TicToc t_nor;
         estimateNormals(pl_orig); // get cloud_with_normal
@@ -406,7 +389,8 @@ void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
       }
     }
 
-      for (int i = 0; i < plsize; i++)
+    bool normal_valid = ringfals_en && !compute_table;
+    for (int i = 0; i < plsize; i++)
       {
         PointType added_pt;
         const PointXYZIRT& orig_pt = pl_orig->points[i];
@@ -456,7 +440,7 @@ void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
 //              if (!pointInImage(orig_pt, rowIdn, columnIdn))
 //                continue;
               const int & index =  cloud2image[i];
-              if (compute_normal && index > 0)
+              if (normal_valid && index > 0)
               {
                   int rowIdn, columnIdn;
                   rowIdn = index / image_cols;

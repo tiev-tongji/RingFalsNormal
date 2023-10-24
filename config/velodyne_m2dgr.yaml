@@ -10,6 +10,7 @@ preprocess:
     blind: 2
 
 normal:
-    compute_table: false
-    ring_table_dir: "/config/m2dgr"
-    compute_normal: true
+    ringfals_en: true
+    compute_table: false               # true: compute only the lookup table
+    ring_table_dir: "/config/m2dgr"    # lookup table path, read or write
+
