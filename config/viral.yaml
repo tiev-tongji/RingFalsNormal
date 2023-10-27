@@ -11,5 +11,5 @@ preprocess:
 
 normal:
     ringfals_en: true
-    compute_table: true
+    compute_table: false
     ring_table_dir: "/config/viral"       # lookup table path, read or write
